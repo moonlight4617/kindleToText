@@ -1,0 +1,160 @@
+# Kindle to Text Converter - Configuration File
+# Copy this file to config.yaml and adjust settings as needed
+
+# Kindle for PC Settings
+kindle:
+  window_title: "Kindle"        # Kindle window title pattern for detection
+  page_turn_key: "Right"         # Key for page turning (Right arrow key)
+  page_turn_delay: 1.5           # Wait time after page turn (seconds)
+  window_activation_delay: 0.5   # Wait time after window activation (seconds)
+
+# Screenshot Settings
+screenshot:
+  format: "png"                  # Image format: png, jpg
+  quality: 95                    # Image quality (1-100, for jpg)
+  region:                        # Capture region (null for auto-detection)
+    x: null
+    y: null
+    width: null
+    height: null
+  auto_trim: true                # Auto-trim margins
+
+# Image Preprocessing Settings (Accuracy Priority)
+preprocessing:
+  # Noise Reduction
+  noise_reduction:
+    enabled: true
+    method: "gaussian"           # gaussian, median, bilateral
+    kernel_size: 3               # 3, 5, 7 (must be odd)
+
+  # Contrast Adjustment
+  contrast:
+    enabled: true
+    method: "clahe"              # clahe, histogram_equalization
+    clip_limit: 2.0              # CLAHE clip limit
+    tile_grid_size: [8, 8]       # CLAHE tile grid size
+
+  # Skew Correction
+  skew_correction:
+    enabled: true
+    angle_threshold: 0.5         # Minimum angle to correct (degrees)
+    method: "hough"              # hough, projection
+
+  # Margin Trimming
+  margin_trim:
+    enabled: true
+    threshold: 240               # Brightness threshold for margin detection (0-255)
+    padding: 10                  # Padding to keep around content (pixels)
+
+  # Binarization
+  binarization:
+    enabled: true
+    method: "adaptive"           # adaptive, otsu, simple
+    block_size: 11               # Adaptive threshold block size (must be odd)
+    c: 2                         # Adaptive threshold constant
+    threshold: 127               # Simple threshold value (if method is simple)
+
+# OCR Settings
+ocr:
+  primary_engine: "yomitoku"     # Primary OCR engine: yomitoku, tesseract
+  fallback_engine: "tesseract"   # Fallback OCR engine
+  retry_on_failure: true         # Retry with fallback engine on failure
+  max_retries: 3                 # Maximum retry attempts
+
+  # Yomitoku Settings
+  yomitoku:
+    model_path: null             # Model path (null for default)
+    confidence_threshold: 0.6    # Minimum confidence score (0.0-1.0)
+    device: "cpu"                # cpu, cuda (GPU)
+    batch_size: 1                # Batch processing size
+
+  # Tesseract Settings
+  tesseract:
+    lang: "jpn"                  # Language: jpn, eng, jpn+eng
+    config: "--psm 6"            # Tesseract config (Page Segmentation Mode)
+    confidence_threshold: 0.5    # Minimum confidence score (0.0-1.0)
+    tesseract_cmd: null          # Tesseract executable path (null for auto-detect)
+
+# Text Output Settings
+output:
+  base_dir: "output"             # Base output directory
+  encoding: "utf-8"              # Text file encoding
+  include_metadata: true         # Include metadata at file header
+  append_mode: true              # Append to existing file (for resume)
+
+  # Text Formatting
+  formatting:
+    preserve_linebreaks: true    # Preserve line breaks from OCR
+    remove_duplicates: true      # Remove duplicate lines
+    trim_whitespace: true        # Trim leading/trailing whitespace
+    normalize_spaces: true       # Normalize multiple spaces to single space
+
+# Heading Detection Settings
+heading_detection:
+  enabled: true                  # Enable heading detection
+  methods:
+    - "font_size"                # Detect by font size
+    - "position"                 # Detect by position
+  font_size_threshold: 1.2       # Font size ratio for heading detection
+  position_based_weight: 0.7     # Weight for position-based detection
+  heading_markers:               # Markdown-style heading markers
+    h1: "# "
+    h2: "## "
+    h3: "### "
+
+# State Management Settings
+state:
+  enabled: true                  # Enable state management
+  save_interval: 10              # Save state every N pages
+  auto_save_on_error: true       # Auto-save state on error
+  state_dir: "output"            # Directory for state files
+  cleanup_on_completion: false   # Delete state file on completion
+
+# Progress Display Settings
+progress:
+  show_progress_bar: true        # Show progress bar
+  show_current_page: true        # Show current page number
+  show_percentage: true          # Show percentage
+  show_eta: true                 # Show estimated time remaining
+  update_interval: 1.0           # Progress update interval (seconds)
+
+# Logging Settings
+logging:
+  level: "INFO"                  # Log level: DEBUG, INFO, WARNING, ERROR, CRITICAL
+  console: true                  # Log to console
+  file: true                     # Log to file
+  file_path: "logs/{book_title}_{date}.log"  # Log file path pattern
+  rotation: "10 MB"              # Log rotation size
+  retention: "30 days"           # Log retention period
+  format: "<green>{time:YYYY-MM-DD HH:mm:ss}</green> | <level>{level: <8}</level> | <cyan>{name}</cyan>:<cyan>{function}</cyan> - <level>{message}</level>"
+
+# Error Handling Settings
+error_handling:
+  # Fatal errors (abort processing)
+  abort_on_window_not_found: true
+  abort_on_config_error: true
+
+  # Recoverable errors (retry)
+  retry_screenshot_failure: true
+  retry_ocr_failure: true
+  retry_file_io_failure: true
+  max_consecutive_failures: 5   # Abort after N consecutive failures
+
+  # Warnings (continue processing)
+  warn_on_low_confidence: true
+  low_confidence_threshold: 0.5
+
+# Performance Settings
+performance:
+  priority: "accuracy"           # accuracy, speed, balanced
+  screenshot_delay: 0.5          # Delay between screenshots (seconds)
+  ocr_timeout: 60                # OCR timeout per page (seconds)
+  max_image_size: [3000, 3000]   # Max image dimensions [width, height] (pixels)
+  memory_limit: null             # Memory limit in MB (null for no limit)
+
+# Advanced Settings
+advanced:
+  debug_mode: false              # Enable debug mode (save intermediate images)
+  debug_output_dir: "debug"      # Debug output directory
+  profile_performance: false     # Profile performance metrics
+  verify_kindle_window: true     # Verify Kindle window before each capture

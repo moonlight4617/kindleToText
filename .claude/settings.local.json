@@ -1,0 +1,25 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(python -m venv venv)",
+      "Bash(./venv/Scripts/python.exe -m pip install -r requirements-dev.txt)",
+      "Bash(./venv/Scripts/python.exe -m pytest tests/test_validators.py -v)",
+      "Bash(./venv/Scripts/python.exe -m pytest tests/test_config.py -v)",
+      "Bash(dir /b /s src)",
+      "Bash(./venv/Scripts/python.exe -m pytest tests/test_screenshot.py -v)",
+      "Bash(./venv/Scripts/python.exe -m pytest tests/test_image_processor.py -v)",
+      "Bash(./venv/Scripts/python.exe -m pytest tests/test_filters.py -v)",
+      "Bash(./venv/Scripts/python.exe -m pytest tests/test_ocr_interface.py -v)",
+      "Bash(./venv/Scripts/python.exe -m pytest tests/test_ocr_engines.py -v)",
+      "Bash(./venv/Scripts/python.exe -m pytest tests/test_state_manager.py -v)",
+      "Bash(./venv/Scripts/python.exe -m pytest tests/test_progress_tracker.py -v)",
+      "Bash(./venv/Scripts/python.exe -m pytest tests/test_state_manager.py tests/test_progress_tracker.py -v)",
+      "Bash(./venv/Scripts/python.exe -m pytest tests/test_state_integration.py -v)",
+      "Bash(./venv/Scripts/python.exe -m pytest tests/test_state*.py -v --tb=short)",
+      "Bash(./venv/Scripts/python.exe -m pytest:*)",
+      "Bash(findstr:*)"
+    ],
+    "deny": [],
+    "ask": []
+  }
+}
