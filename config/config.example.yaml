@@ -56,7 +56,7 @@ preprocessing:
 
 # OCR Settings
 ocr:
-  primary_engine: "yomitoku"     # Primary OCR engine: yomitoku, tesseract
+  primary_engine: "yomitoku"     # Primary OCR engine: yomitoku, tesseract, google_vision
   fallback_engine: "tesseract"   # Fallback OCR engine
   retry_on_failure: true         # Retry with fallback engine on failure
   max_retries: 3                 # Maximum retry attempts
@@ -74,6 +74,19 @@ ocr:
     config: "--psm 6"            # Tesseract config (Page Segmentation Mode)
     confidence_threshold: 0.5    # Minimum confidence score (0.0-1.0)
     tesseract_cmd: null          # Tesseract executable path (null for auto-detect)
+
+  # Google Cloud Vision API Settings
+  # Note: Requires Google Cloud project setup and service account credentials
+  # See docs/google_vision_setup.md for detailed setup instructions
+  google_vision:
+    credentials_path: null       # Path to service account key JSON file
+                                 # (null to use GOOGLE_APPLICATION_CREDENTIALS env var)
+                                 # Example: "config/google_credentials.json"
+    detection_type: "DOCUMENT_TEXT_DETECTION"  # TEXT_DETECTION or DOCUMENT_TEXT_DETECTION
+                                               # DOCUMENT_TEXT_DETECTION provides better layout info
+    language_hints: ["ja", "en"] # Language hints for better accuracy
+                                 # Supported: ja (Japanese), en (English), etc.
+    enable_text_detection_confidence: false  # Enable confidence scores (may incur additional costs)
 
 # Text Output Settings
 output:

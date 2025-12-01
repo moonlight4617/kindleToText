@@ -17,7 +17,9 @@
       "Bash(./venv/Scripts/python.exe -m pytest tests/test_state_integration.py -v)",
       "Bash(./venv/Scripts/python.exe -m pytest tests/test_state*.py -v --tb=short)",
       "Bash(./venv/Scripts/python.exe -m pytest:*)",
-      "Bash(findstr:*)"
+      "Bash(findstr:*)",
+      "Bash(dir:*)",
+      "Bash(./venv/Scripts/python.exe:*)"
     ],
     "deny": [],
     "ask": []

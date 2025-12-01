@@ -8,7 +8,7 @@
 from typing import Optional, Tuple
 import cv2
 import numpy as np
-from PIL import Image
+from PIL import Image, ImageFilter
 from loguru import logger
 
 
@@ -344,6 +344,94 @@ class ImageProcessor:
             logger.error(f"Error in margin trimming: {e}")
             return image
 
+    def upscale_image(
+        self,
+        image: Image.Image,
+        scale_factor: float = 2.0,
+        interpolation: str = "lanczos"
+    ) -> Image.Image:
+        """
+        画像を高解像度化する
+
+        Args:
+            image: 入力画像
+            scale_factor: 拡大倍率（1.5, 2.0, 2.5など）
+            interpolation: 補間方法（lanczos, bicubic, bilinear）
+
+        Returns:
+            Image.Image: 拡大後の画像
+        """
+        try:
+            logger.debug(f"Upscaling image: scale_factor={scale_factor}, interpolation={interpolation}")
+
+            # 現在のサイズを取得
+            width, height = image.size
+
+            # 新しいサイズを計算
+            new_width = int(width * scale_factor)
+            new_height = int(height * scale_factor)
+
+            # 補間方法を選択
+            interpolation_methods = {
+                "lanczos": Image.Resampling.LANCZOS,
+                "bicubic": Image.Resampling.BICUBIC,
+                "bilinear": Image.Resampling.BILINEAR,
+                "nearest": Image.Resampling.NEAREST
+            }
+
+            resampling = interpolation_methods.get(
+                interpolation.lower(),
+                Image.Resampling.LANCZOS  # デフォルトはLANCZOS
+            )
+
+            # 画像を拡大
+            upscaled = image.resize((new_width, new_height), resampling)
+
+            logger.debug(f"Image upscaled from {width}x{height} to {new_width}x{new_height}")
+            return upscaled
+
+        except Exception as e:
+            logger.error(f"Error in image upscaling: {e}")
+            return image
+
+    def sharpen_image(
+        self,
+        image: Image.Image,
+        radius: float = 2.0,
+        percent: int = 150,
+        threshold: int = 3
+    ) -> Image.Image:
+        """
+        画像をシャープ化する（アンシャープマスク）
+
+        Args:
+            image: 入力画像
+            radius: ぼかしの半径（1-3推奨）
+            percent: 強調の程度（100-200%推奨）
+            threshold: 適用する最小輝度差（2-5推奨）
+
+        Returns:
+            Image.Image: シャープ化後の画像
+        """
+        try:
+            logger.debug(f"Sharpening image: radius={radius}, percent={percent}, threshold={threshold}")
+
+            # アンシャープマスクフィルタを適用
+            sharpened = image.filter(
+                ImageFilter.UnsharpMask(
+                    radius=radius,
+                    percent=percent,
+                    threshold=threshold
+                )
+            )
+
+            logger.debug("Image sharpening completed")
+            return sharpened
+
+        except Exception as e:
+            logger.error(f"Error in image sharpening: {e}")
+            return image
+
     def binarize(
         self,
         image: Image.Image,
@@ -440,7 +528,30 @@ class ImageProcessor:
                 kernel_size = settings.get("noise_kernel_size") or self.config.get("noise_reduction", {}).get("kernel_size", 3)
                 result = self.remove_noise(result, kernel_size=kernel_size)
 
-            # 2. コントラスト調整
+            # 2. 画像の高解像度化 (Phase 2: OCR Accuracy Improvement)
+            upscaling_config = self.config.get("upscaling", {})
+            enable_upscaling = settings.get("enable_upscaling")
+            if enable_upscaling is None:
+                enable_upscaling = upscaling_config.get("enabled", False)
+
+            if enable_upscaling:
+                scale_factor = settings.get("scale_factor") or upscaling_config.get("scale_factor", 2.0)
+                interpolation = settings.get("interpolation") or upscaling_config.get("interpolation", "lanczos")
+                result = self.upscale_image(result, scale_factor=scale_factor, interpolation=interpolation)
+
+            # 3. シャープ化 (Phase 2: OCR Accuracy Improvement)
+            sharpening_config = self.config.get("sharpening", {})
+            enable_sharpening = settings.get("enable_sharpening")
+            if enable_sharpening is None:
+                enable_sharpening = sharpening_config.get("enabled", False)
+
+            if enable_sharpening:
+                radius = settings.get("sharpening_radius") or sharpening_config.get("radius", 2.0)
+                percent = settings.get("sharpening_percent") or sharpening_config.get("percent", 150)
+                threshold = settings.get("sharpening_threshold") or sharpening_config.get("threshold", 3)
+                result = self.sharpen_image(result, radius=radius, percent=percent, threshold=threshold)
+
+            # 4. コントラスト調整
             if self.enable_contrast_adjustment:
                 clip_limit = settings.get("contrast_clip_limit") or self.config.get("contrast", {}).get("clip_limit", 2.0)
                 tile_size = settings.get("contrast_tile_size") or tuple(self.config.get("contrast", {}).get("tile_grid_size", [8, 8]))
@@ -450,12 +561,12 @@ class ImageProcessor:
                     tile_grid_size=tile_size
                 )
 
-            # 3. 傾き補正
+            # 5. 傾き補正
             if self.enable_skew_correction:
                 angle_threshold = settings.get("skew_threshold") or self.config.get("skew_correction", {}).get("angle_threshold", 0.5)
                 result = self.correct_skew(result, angle_threshold=angle_threshold)
 
-            # 4. 余白トリミング
+            # 6. 余白トリミング
             margin_trim_config = self.config.get("margin_trim", {})
             enable_trimming = settings.get("enable_trimming")
             if enable_trimming is None:
@@ -466,7 +577,7 @@ class ImageProcessor:
                 dark_threshold = settings.get("dark_threshold") or margin_trim_config.get("dark_threshold", 50)
                 result = self.trim_margins(result, margin_threshold=margin_threshold, dark_threshold=dark_threshold)
 
-            # 5. 二値化
+            # 7. 二値化
             if self.enable_binarization:
                 binarization_config = self.config.get("binarization", {})
                 method = settings.get("binarization_method") or binarization_config.get("method", "otsu")

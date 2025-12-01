@@ -170,8 +170,13 @@ class TestSettings:
                 "page_turn_delay": 1.5,
             },
             "ocr": {
-                "primary_engine": "yomitoku",
+                "primary_engine": "google_vision",
                 "yomitoku": {"confidence_threshold": 0.7, "device": "cpu"},
+                "google_vision": {
+                    "credentials_path": "config/google_credentials.json",
+                    "detection_type": "DOCUMENT_TEXT_DETECTION",
+                    "language_hints": ["ja", "en"],
+                },
             },
             "logging": {"level": "INFO", "console": True},
         }
@@ -182,7 +187,7 @@ class TestSettings:
 
         assert settings.kindle.window_title == "Kindle"
         assert settings.kindle.page_turn_delay == 1.5
-        assert settings.ocr.primary_engine == "yomitoku"
+        assert settings.ocr.primary_engine == "google_vision"
         assert settings.ocr.yomitoku.confidence_threshold == 0.7
         assert settings.logging.level == "INFO"
 
@@ -192,7 +197,7 @@ class TestSettings:
 
         # Should use default values
         assert settings.kindle.window_title == "Kindle"
-        assert settings.ocr.primary_engine == "yomitoku"
+        assert settings.ocr.primary_engine == "google_vision"
         assert settings.logging.level == "INFO"
 
     def test_settings_partial_config(self):
@@ -206,7 +211,7 @@ class TestSettings:
 
         assert settings.kindle.window_title == "Custom Kindle"
         # Default values for other settings
-        assert settings.ocr.primary_engine == "yomitoku"
+        assert settings.ocr.primary_engine == "google_vision"
 
     def test_screenshot_region_tuple(self):
         """Test screenshot region conversion to tuple."""

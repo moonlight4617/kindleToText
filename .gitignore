@@ -49,6 +49,11 @@ state_*.json
 # Config (exclude personal config, keep example)
 config/config.yaml
 
+# Google Cloud credentials (IMPORTANT: Never commit these!)
+config/google_credentials.json
+config/*_credentials.json
+**/google_credentials.json
+
 # Testing
 .pytest_cache/
 .coverage

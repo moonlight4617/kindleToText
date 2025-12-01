@@ -128,15 +128,27 @@ class TesseractSettings:
 
 
 @dataclass
+class GoogleVisionSettings:
+    """Google Cloud Vision API settings."""
+
+    credentials_path: str = "config/google_credentials.json"
+    detection_type: str = "DOCUMENT_TEXT_DETECTION"
+    language_hints: List[str] = field(default_factory=lambda: ["ja", "en"])
+    enable_text_detection_confidence: bool = False
+
+
+@dataclass
 class OCRSettings:
     """OCR processing settings."""
 
-    primary_engine: str = "yomitoku"
+    # primary_engine: str = "yomitoku"
+    primary_engine: str = "google_vision"
     fallback_engine: str = "tesseract"
     retry_on_failure: bool = True
     max_retries: int = 3
     yomitoku: YomitokuSettings = field(default_factory=YomitokuSettings)
     tesseract: TesseractSettings = field(default_factory=TesseractSettings)
+    google_vision: GoogleVisionSettings = field(default_factory=GoogleVisionSettings)
 
 
 @dataclass
