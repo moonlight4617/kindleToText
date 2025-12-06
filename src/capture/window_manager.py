@@ -154,6 +154,37 @@ class WindowManager:
             logger.error(f"Failed to activate window: {e}")
             return False
 
+    def maximize_window(self, window_info: WindowInfo) -> bool:
+        """
+        指定されたウィンドウを最大化する（KindleのF11フルスクリーン）
+
+        Args:
+            window_info: 最大化するウィンドウ情報
+
+        Returns:
+            bool: 最大化に成功した場合はTrue、失敗した場合はFalse
+        """
+        try:
+            import pyautogui
+
+            logger.debug(f"Maximizing window with F11: {window_info.title}")
+
+            # ウィンドウがアクティブであることを確認
+            if not self.activate_window(window_info):
+                logger.warning("Failed to activate window before maximizing")
+                return False
+
+            # F11キーでフルスクリーン化
+            pyautogui.press('f11')
+            time.sleep(3.0)  # フルスクリーン化が完了するまで待機
+
+            logger.info(f"Window maximized with F11 successfully: {window_info.title}")
+            return True
+
+        except Exception as e:
+            logger.error(f"Failed to maximize window: {e}")
+            return False
+
     def get_window_region(self, window_info: WindowInfo, client_only: bool = True) -> Region:
         """
         ウィンドウの領域情報を取得する

@@ -18,6 +18,7 @@ from .ocr_interface import (
 from .yomitoku_engine import YomitokuEngine
 from .tesseract_engine import TesseractEngine
 from .google_vision_engine import GoogleVisionEngine
+from .gemini_engine import GeminiEngine
 
 __all__ = [
     "OCRInterface",
@@ -30,5 +31,6 @@ __all__ = [
     "YomitokuEngine",
     "TesseractEngine",
     "GoogleVisionEngine",
+    "GeminiEngine",
     "create_default_ocr_engine",
 ]

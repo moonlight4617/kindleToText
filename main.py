@@ -6,6 +6,7 @@ OCR処理によってテキスト化するツール。
 """
 
 import sys
+import time
 from pathlib import Path
 import ctypes
 
@@ -52,6 +53,7 @@ class KindleOCRWorkflow:
         self.text_writer = None
         self.progress_tracker = None
         self.state = None
+        self.window_maximized = False  # ウィンドウが最大化済みかどうかのフラグ
 
     def initialize(self, book_title: str, total_pages: int, start_page: int = 1):
         """
@@ -216,8 +218,26 @@ class KindleOCRWorkflow:
                 logger.error("Failed to activate Kindle window")
                 return False
 
+            # ウィンドウを最大化（初回のみ、F11でフルスクリーン化）
+            if not self.window_maximized:
+                logger.info("Maximizing Kindle window with F11 (fullscreen)...")
+                if self.window_manager.maximize_window(window):
+                    self.window_maximized = True
+                    # フルスクリーン化後にウィンドウ情報を再取得
+                    time.sleep(0.5)  # 画面が完全に切り替わるまで少し待つ
+                    window = self.window_manager.find_kindle_window()
+                    if not window:
+                        # フルスクリーン時はウィンドウとして検出できない場合がある
+                        logger.info("Window not found after F11 - using full screen region")
+                else:
+                    logger.warning("Failed to maximize Kindle window (continuing anyway)")
+
             # スクリーンショット撮影
-            region = self.window_manager.get_window_region(window)
+            if window:
+                region = self.window_manager.get_window_region(window)
+            else:
+                # フルスクリーン時の対応：画面全体を撮影
+                region = None
             image = self.screenshot_capture.capture_screen(region)
 
             if image is None:

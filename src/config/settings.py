@@ -138,6 +138,24 @@ class GoogleVisionSettings:
 
 
 @dataclass
+class GeminiSettings:
+    """Gemini AI OCR engine settings."""
+
+    api_key: Optional[str] = None
+    model: str = "gemini-2.5-flash"  # models/ プレフィックスは自動で追加される
+    temperature: float = 0.0
+    max_output_tokens: int = 8192
+    prompt_template: str = """この画像は書籍のページです。
+画像内のすべてのテキストを正確に抽出してください。
+
+要件:
+- 日本語の文字を正確に認識
+- レイアウトや段落構造を保持
+- 特殊文字や記号も含める
+- テキストのみを出力し、説明や注釈は不要"""
+
+
+@dataclass
 class OCRSettings:
     """OCR processing settings."""
 
@@ -149,6 +167,7 @@ class OCRSettings:
     yomitoku: YomitokuSettings = field(default_factory=YomitokuSettings)
     tesseract: TesseractSettings = field(default_factory=TesseractSettings)
     google_vision: GoogleVisionSettings = field(default_factory=GoogleVisionSettings)
+    gemini: GeminiSettings = field(default_factory=GeminiSettings)
 
 
 @dataclass
