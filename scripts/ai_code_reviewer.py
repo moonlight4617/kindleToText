@@ -34,7 +34,7 @@ class AICodeReviewer:
 
         # Configure Gemini API
         genai.configure(api_key=self.gemini_api_key)
-        self.model = genai.GenerativeModel('gemini-2.0-flash-exp')
+        self.model = genai.GenerativeModel('gemini-2.0-flash-lite')
 
     def read_diff_file(self, filepath: str = "changes.diff") -> str:
         """Read the git diff file"""
