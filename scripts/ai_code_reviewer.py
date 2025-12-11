@@ -34,7 +34,7 @@ class AICodeReviewer:
 
         # Configure Gemini API
         genai.configure(api_key=self.gemini_api_key)
-        self.model = genai.GenerativeModel('gemini-2.0-flash-lite')
+        self.model = genai.GenerativeModel('gemini-2.0-flash-exp')
 
     def read_diff_file(self, filepath: str = "changes.diff") -> str:
         """Read the git diff file"""
@@ -61,6 +61,8 @@ class AICodeReviewer:
 
         prompt = f"""あなたは経験豊富なコードレビュアーです。以下のコード変更をレビューしてください。
 
+**重要: すべてのレビュー内容は日本語で記述してください。**
+
 変更されたファイル:
 {files_list}
 
@@ -77,7 +79,7 @@ class AICodeReviewer:
 4. **コードの可読性・保守性**: 命名規則、コードの複雑さ、重複コードなど
 5. **ベストプラクティス**: 言語固有の慣習、設計パターン、エラーハンドリングなど
 
-レビュー結果は以下のJSON形式で返してください：
+レビュー結果は以下のJSON形式で日本語で返してください：
 
 ```json
 {{
@@ -92,20 +94,21 @@ class AICodeReviewer:
       "file": "ファイルパス",
       "severity": "high|medium|low",
       "category": "bug|security|performance|readability|best-practice",
-      "title": "問題のタイトル",
-      "description": "詳細な説明",
-      "suggestion": "改善提案",
+      "title": "問題のタイトル（日本語）",
+      "description": "詳細な説明（日本語）",
+      "suggestion": "改善提案（日本語）",
       "line_range": "行番号（オプション）"
     }}
   ],
-  "overall_comment": "全体的な評価コメント"
+  "overall_comment": "全体的な評価コメント（日本語）"
 }}
 ```
 
-軽微な問題やスタイルの好みの問題は指摘せず、実質的に重要な問題のみを報告してください。
-問題がない場合は、issues配列を空にして、overall_commentでポジティブなフィードバックを提供してください。
-
-JSON形式のみを返してください。説明文や追加のテキストは不要です。"""
+**注意事項:**
+- すべてのフィールド（title, description, suggestion, overall_comment）は必ず日本語で記述してください
+- 軽微な問題やスタイルの好みの問題は指摘せず、実質的に重要な問題のみを報告してください
+- 問題がない場合は、issues配列を空にして、overall_commentで日本語のポジティブなフィードバックを提供してください
+- JSON形式のみを返してください。説明文や追加のテキストは不要です"""
 
         try:
             # Call Gemini API
