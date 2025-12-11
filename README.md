@@ -156,6 +156,57 @@ output/
 4. テキストファイルをアップロード
 5. 要約やQAを実施
 
+## AI自動コードレビュー
+
+このプロジェクトでは、GitHub Actions + Google Gemini APIを使用した自動コードレビュー機能を提供しています。
+
+### セットアップ
+
+#### 1. GitHub Secretsの設定
+
+リポジトリの設定で以下のSecretを追加してください：
+
+1. GitHub リポジトリページで `Settings` > `Secrets and variables` > `Actions` に移動
+2. `New repository secret` をクリック
+3. 以下のSecretを追加：
+   - **Name**: `GEMINI_API_KEY`
+   - **Value**: あなたのGoogle Gemini APIキー（[https://aistudio.google.com/app/apikey](https://aistudio.google.com/app/apikey)で取得）
+
+注: `GITHUB_TOKEN`は自動的に提供されるため、設定不要です。
+
+#### 2. 動作確認
+
+1. Pull Requestを作成
+2. GitHub Actionsが自動的にトリガーされます
+3. 数分後、PRにAIによるレビューコメントが投稿されます
+
+### レビュー観点
+
+AIレビューでは以下の観点で自動チェックされます：
+
+1. **バグの可能性**: ロジックエラー、エッジケース、null/undefined参照など
+2. **セキュリティ脆弱性**: インジェクション、認証・認可の問題、機密情報の露出など
+3. **パフォーマンス問題**: 非効率なアルゴリズム、不要な計算、メモリリークなど
+4. **コードの可読性・保守性**: 命名規則、複雑さ、重複コードなど
+5. **ベストプラクティス**: 言語固有の慣習、設計パターン、エラーハンドリングなど
+
+### 対象ファイル
+
+以下の拡張子のファイルがレビュー対象です：
+- Python: `.py`
+- JavaScript/TypeScript: `.js`, `.ts`, `.jsx`, `.tsx`
+- その他: `.java`, `.go`, `.rs`, `.cpp`, `.c`, `.h`
+
+### 注意事項
+
+- APIキーは必ずGitHub Secretsで管理してください（コミットしないこと）
+- 大規模なPRの場合、レビューに時間がかかる場合があります
+- Gemini APIは無料枠があります（月間リクエスト制限あり）
+- 機密情報を含むファイル（.env等）はレビュー対象外です
+- 使用モデル: `gemini-2.0-flash-exp`（高速・高品質）
+
+詳細は [docs/dev_diary/2025-12-09_自動ソースレビュー環境の構築.md](docs/dev_diary/2025-12-09_自動ソースレビュー環境の構築.md) を参照してください。
+
 ## 開発
 
 ### プロジェクト構造

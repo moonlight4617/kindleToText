@@ -56,7 +56,7 @@ preprocessing:
 
 # OCR Settings
 ocr:
-  primary_engine: "yomitoku"     # Primary OCR engine: yomitoku, tesseract, google_vision
+  primary_engine: "yomitoku"     # Primary OCR engine: yomitoku, tesseract, google_vision, gemini
   fallback_engine: "tesseract"   # Fallback OCR engine
   retry_on_failure: true         # Retry with fallback engine on failure
   max_retries: 3                 # Maximum retry attempts
@@ -88,6 +88,29 @@ ocr:
                                  # Supported: ja (Japanese), en (English), etc.
     enable_text_detection_confidence: false  # Enable confidence scores (may incur additional costs)
 
+  # Gemini AI Settings
+  # Note: Requires Gemini API key from Google AI Studio
+  # Get your API key at: https://aistudio.google.com/app/apikey
+  gemini:
+    api_key: null                    # Gemini API key (null to use GEMINI_API_KEY env var)
+                                     # Recommended: Set as environment variable for security
+    model: "gemini-2.5-flash"        # Model to use (models/ prefix added automatically)
+                                     # Options: gemini-2.5-flash, gemini-2.5-pro, gemini-flash-latest
+                                     # flash: Faster and cheaper, good for most use cases
+                                     # pro: Higher accuracy, better for complex layouts
+    temperature: 0.0             # Generation temperature (0.0-1.0)
+                                 # 0.0 for deterministic output (recommended for OCR)
+    max_output_tokens: 8192      # Maximum output tokens (adjust based on page length)
+    prompt_template: |           # Custom prompt for text extraction
+      この画像は書籍のページです。
+      画像内のすべてのテキストを正確に抽出してください。
+
+      要件:
+      - 日本語の文字を正確に認識
+      - レイアウトや段落構造を保持
+      - 特殊文字や記号も含める
+      - テキストのみを出力し、説明や注釈は不要
+
 # Text Output Settings
 output:
   base_dir: "output"             # Base output directory
@@ -114,6 +137,14 @@ heading_detection:
     h1: "# "
     h2: "## "
     h3: "### "
+
+# End Page Detection Settings
+# Automatically detect the last page by comparing consecutive screenshots
+detection:
+  consecutive_same_pages: 3      # Number of consecutive same pages to detect end (recommended: 3)
+  similarity_threshold: 5        # Image similarity threshold (Hamming distance, 0-20)
+                                 # Lower = more strict (5 recommended)
+                                 # Detects when you reach the last page and it keeps repeating
 
 # State Management Settings
 state:

@@ -1,0 +1,80 @@
+name: AI Code Review
+
+on:
+  pull_request:
+    types: [opened, synchronize, reopened]
+
+permissions:
+  contents: read
+  pull-requests: write
+
+jobs:
+  ai-review:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Get changed files
+        id: changed-files
+        run: |
+          # Get the base branch
+          git fetch origin ${{ github.base_ref }}
+
+          # Get list of changed files
+          CHANGED_FILES=$(git diff --name-only origin/${{ github.base_ref }}...HEAD | grep -E '\.(py|js|ts|jsx|tsx|java|go|rs|cpp|c|h)$' || true)
+
+          if [ -z "$CHANGED_FILES" ]; then
+            echo "No code files changed"
+            echo "has_changes=false" >> $GITHUB_OUTPUT
+          else
+            echo "Changed files:"
+            echo "$CHANGED_FILES"
+            echo "has_changes=true" >> $GITHUB_OUTPUT
+
+            # Save changed files to a file
+            echo "$CHANGED_FILES" > changed_files.txt
+          fi
+
+      - name: Get file diffs
+        if: steps.changed-files.outputs.has_changes == 'true'
+        run: |
+          # Get diffs for changed files
+          git diff origin/${{ github.base_ref }}...HEAD > changes.diff
+
+          echo "Diff size:"
+          wc -l changes.diff
+
+      - name: Set up Python
+        if: steps.changed-files.outputs.has_changes == 'true'
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
+      - name: Install dependencies
+        if: steps.changed-files.outputs.has_changes == 'true'
+        run: |
+          pip install google-generativeai requests
+
+      - name: Run AI Code Review
+        if: steps.changed-files.outputs.has_changes == 'true'
+        env:
+          GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          PR_NUMBER: ${{ github.event.pull_request.number }}
+          REPO_NAME: ${{ github.repository }}
+        run: |
+          python scripts/ai_code_reviewer.py
+
+      - name: Upload review results
+        if: always() && steps.changed-files.outputs.has_changes == 'true'
+        uses: actions/upload-artifact@v4
+        with:
+          name: ai-review-results
+          path: |
+            review_results.json
+            review_results.md
+          retention-days: 30

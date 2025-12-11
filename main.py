@@ -30,6 +30,7 @@ from src.output.text_writer import TextWriter
 from src.preprocessor.image_processor import ImageProcessor
 from src.state.progress_tracker import ProgressTracker
 from src.state.state_manager import StateManager
+from src.utils.end_page_detector import EndPageDetector
 
 
 class KindleOCRWorkflow:
@@ -54,6 +55,7 @@ class KindleOCRWorkflow:
         self.progress_tracker = None
         self.state = None
         self.window_maximized = False  # ウィンドウが最大化済みかどうかのフラグ
+        self.end_page_detector = None  # 最終ページ検出器
 
     def initialize(self, book_title: str, total_pages: int, start_page: int = 1):
         """
@@ -110,6 +112,13 @@ class KindleOCRWorkflow:
             # 進捗トラッカー初期化
             self.progress_tracker = ProgressTracker(
                 total_pages=total_pages, start_page=start_page
+            )
+
+            # 最終ページ検出器を初期化
+            detection_config = self.config.get("detection", {})
+            self.end_page_detector = EndPageDetector(
+                consecutive_same_pages=detection_config.get("consecutive_same_pages", 3),
+                similarity_threshold=detection_config.get("similarity_threshold", 5)
             )
 
             # 初期状態作成
@@ -186,6 +195,13 @@ class KindleOCRWorkflow:
             # 既に処理済みのページ情報を設定
             self.progress_tracker.current_page = self.state.current_page
 
+            # 最終ページ検出器を初期化
+            detection_config = self.config.get("detection", {})
+            self.end_page_detector = EndPageDetector(
+                consecutive_same_pages=detection_config.get("consecutive_same_pages", 3),
+                similarity_threshold=detection_config.get("similarity_threshold", 5)
+            )
+
             logger.info(
                 f"Resuming from page {self.state.current_page}/{self.state.total_pages}"
             )
@@ -195,7 +211,7 @@ class KindleOCRWorkflow:
             logger.error(f"Failed to resume from state: {e}")
             return False
 
-    def process_page(self, page_number: int) -> bool:
+    def process_page(self, page_number: int) -> dict:
         """
         1ページを処理
 
@@ -203,7 +219,9 @@ class KindleOCRWorkflow:
             page_number: ページ番号
 
         Returns:
-            処理成功の場合 True
+            dict: 処理結果
+                - success: bool - 処理成功
+                - is_end_page: bool - 最終ページに到達したか
         """
         try:
             logger.info(f"Processing page {page_number}/{self.state.total_pages}")
@@ -212,11 +230,11 @@ class KindleOCRWorkflow:
             window = self.window_manager.find_kindle_window()
             if not window:
                 logger.error("Kindle window not found")
-                return False
+                return {"success": False, "is_end_page": False}
 
             if not self.window_manager.activate_window(window):
                 logger.error("Failed to activate Kindle window")
-                return False
+                return {"success": False, "is_end_page": False}
 
             # ウィンドウを最大化（初回のみ、F11でフルスクリーン化）
             if not self.window_maximized:
@@ -242,7 +260,21 @@ class KindleOCRWorkflow:
 
             if image is None:
                 logger.error(f"Failed to capture screenshot for page {page_number}")
-                return False
+                return {"success": False, "is_end_page": False}
+
+            # 最終ページチェック（スクリーンショット撮影後）
+            is_end_page = self.end_page_detector.check_page(image)
+
+            if is_end_page:
+                logger.warning(
+                    f"End page detected at page {page_number}. "
+                    f"The same page appeared {self.end_page_detector.consecutive_same_pages} "
+                    f"times consecutively."
+                )
+                # 最終ページの情報をログに記録
+                similarity_score = self.end_page_detector.get_similarity_score(image)
+                if similarity_score:
+                    logger.info(f"Similarity score with previous page: {similarity_score:.2%}")
 
             # スクリーンショット保存
             screenshot_path = (
@@ -267,8 +299,8 @@ class KindleOCRWorkflow:
             self.text_writer.append_text(self.output_file, text)
             self.text_writer.append_text(self.output_file, "\n" + "=" * 80 + "\n\n")
 
-            # 次のページへ
-            if page_number < self.state.total_pages:
+            # 次のページへ（最終ページでない場合のみ）
+            if page_number < self.state.total_pages and not is_end_page:
                 # ページ送り前にウィンドウを再アクティブ化
                 if not self.window_manager.activate_window(window):
                     logger.warning("Failed to reactivate Kindle window before page turn")
@@ -279,11 +311,11 @@ class KindleOCRWorkflow:
                 )
 
             logger.info(f"Page {page_number} processed successfully")
-            return True
+            return {"success": True, "is_end_page": is_end_page}
 
         except Exception as e:
             logger.error(f"Failed to process page {page_number}: {e}")
-            return False
+            return {"success": False, "is_end_page": False}
 
     def save_state(self):
         """現在の状態を保存"""
@@ -315,14 +347,23 @@ class KindleOCRWorkflow:
             # メインループ
             for page in range(start_page, self.state.total_pages + 1):
                 # ページ処理
-                success = self.process_page(page)
+                result = self.process_page(page)
 
-                if success:
+                if result["success"]:
                     # 成功時
                     consecutive_failures = 0
                     self.progress_tracker.update_progress(page, failed=False)
                     self.state.processed_pages.append(page)
                     self.state.current_page = page
+
+                    # 最終ページ検出時は処理を終了
+                    if result["is_end_page"]:
+                        logger.info(
+                            f"Stopping at page {page} (end page detected). "
+                            f"Actual total pages: {page}"
+                        )
+                        self.state.total_pages = page  # 実際のページ数を更新
+                        break
                 else:
                     # 失敗時
                     consecutive_failures += 1

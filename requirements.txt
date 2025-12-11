@@ -10,6 +10,7 @@ pywinauto==0.6.8
 Pillow==10.4.0
 opencv-python==4.10.0.84
 numpy==1.26.4
+imagehash==4.3.1
 
 # OCR
 yomitoku>=0.1.0
@@ -29,6 +30,10 @@ colorama==0.4.6
 # Utilities
 loguru==0.7.2
 python-dateutil==2.9.0.post0
+
+# AI Code Review
+# google-generativeai is already included above for OCR
+requests>=2.31.0
 
 # Note: If yomitoku installation fails via pip, install manually following:
 # https://kotaro-kinoshita.github.io/yomitoku/installation/
