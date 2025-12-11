@@ -2,6 +2,8 @@
 """
 AI Code Reviewer using Gemini API
 Analyzes code changes and posts review comments to GitHub Pull Requests
+
+Version: 1.0.0
 """
 
 import os
