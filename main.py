@@ -376,6 +376,8 @@ class KindleOCRWorkflow:
                         )
                         self.state.status = "failed"
                         self.save_state()
+                        # ウィンドウの最大化を解除
+                        self._restore_window_if_maximized()
                         return False
 
                 # 状態を更新
@@ -418,13 +420,28 @@ class KindleOCRWorkflow:
             if self.config["state"]["cleanup_on_completion"]:
                 self.state_manager.delete_state(self.state.book_title)
 
+            # ウィンドウの最大化を解除
+            self._restore_window_if_maximized()
+
             return True
 
         except Exception as e:
             logger.error(f"Fatal error in main loop: {e}")
             self.state.status = "failed"
             self.save_state()
+            # ウィンドウの最大化を解除
+            self._restore_window_if_maximized()
             return False
+
+    def _restore_window_if_maximized(self):
+        """ウィンドウが最大化されている場合、元のサイズに戻す"""
+        if self.window_maximized and self.window_manager:
+            logger.info("Restoring Kindle window from fullscreen...")
+            if self.window_manager.restore_window():
+                logger.info("Kindle window restored successfully")
+                self.window_maximized = False
+            else:
+                logger.warning("Failed to restore Kindle window (you may need to press F11 manually)")
 
 
 @click.command()
@@ -553,6 +570,9 @@ def main(title, total_pages, start_page, config, resume, debug):
     except KeyboardInterrupt:
         logger.warning("Processing interrupted by user")
         logger.info("State has been saved. Use --resume to continue.")
+        # ウィンドウの最大化を解除
+        if 'workflow' in locals() and workflow.window_maximized:
+            workflow._restore_window_if_maximized()
         sys.exit(130)
     except Exception as e:
         logger.exception(f"Unexpected error: {e}")

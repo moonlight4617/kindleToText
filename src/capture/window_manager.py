@@ -185,6 +185,29 @@ class WindowManager:
             logger.error(f"Failed to maximize window: {e}")
             return False
 
+    def restore_window(self) -> bool:
+        """
+        フルスクリーンモードを解除する（F11キー再押下）
+
+        Returns:
+            bool: 解除に成功した場合はTrue、失敗した場合はFalse
+        """
+        try:
+            import pyautogui
+
+            logger.debug("Restoring window from fullscreen with F11")
+
+            # F11キーでフルスクリーン解除
+            pyautogui.press('f11')
+            time.sleep(1.0)  # フルスクリーン解除が完了するまで待機
+
+            logger.info("Window restored from fullscreen successfully")
+            return True
+
+        except Exception as e:
+            logger.error(f"Failed to restore window: {e}")
+            return False
+
     def get_window_region(self, window_info: WindowInfo, client_only: bool = True) -> Region:
         """
         ウィンドウの領域情報を取得する
