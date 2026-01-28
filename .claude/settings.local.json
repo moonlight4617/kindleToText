@@ -19,7 +19,8 @@
       "Bash(./venv/Scripts/python.exe -m pytest:*)",
       "Bash(findstr:*)",
       "Bash(dir:*)",
-      "Bash(./venv/Scripts/python.exe:*)"
+      "Bash(./venv/Scripts/python.exe:*)",
+      "Bash(echo $GEMINI_API_KEY)"
     ],
     "deny": [],
     "ask": []

@@ -446,6 +446,37 @@ def main(title, total_pages, start_page, config, resume, debug):
 
 ---
 
+## Phase 12: 環境変数管理の改善
+
+### 12.1 .envファイル対応
+- [ ] python-dotenvパッケージの追加
+- [ ] `.env.example`ファイルの作成（テンプレート）
+- [ ] `.env`ファイルの作成（実際の設定用）
+- [ ] `.gitignore`に`.env`を追加
+- [ ] `main.py`で`.env`を読み込むコードを追加
+
+**目的**:
+- APIキーなどの機密情報を安全に管理
+- 他の端末での環境構築を簡素化
+- venvのactivate.batを毎回編集する必要をなくす
+
+**実装内容**:
+```python
+# main.pyの先頭に追加
+from dotenv import load_dotenv
+load_dotenv()  # .envファイルから環境変数を読み込み
+```
+
+```.env.example
+# Google Gemini API Key
+GEMINI_API_KEY=your_api_key_here
+
+# Google Cloud Vision API Credentials
+# GOOGLE_APPLICATION_CREDENTIALS=path/to/credentials.json
+```
+
+---
+
 ## 進捗管理
 
 ### 全体進捗
