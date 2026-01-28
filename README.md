@@ -88,13 +88,13 @@ copy config\config.example.yaml config\config.yaml
 ### 基本的な使い方
 
 ```bash
-python src/main.py --title "書籍タイトル"
+python main.py --title "書籍タイトル"
 ```
 
 ### オプション
 
 ```bash
-python src/main.py --help
+python main.py --help
 ```
 
 利用可能なオプション：
@@ -110,19 +110,19 @@ python src/main.py --help
 #### 新規処理
 
 ```bash
-python src/main.py --title "深層学習入門"
+python main.py --title "深層学習入門"
 ```
 
 #### 特定ページ範囲を指定
 
 ```bash
-python src/main.py --title "深層学習入門" --start-page 10 --end-page 100
+python main.py --title "深層学習入門" --start-page 10 --end-page 100
 ```
 
 #### 前回の続きから再開
 
 ```bash
-python src/main.py --title "深層学習入門" --resume
+python main.py --title "深層学習入門" --resume
 ```
 
 ### 実行前の準備
@@ -258,9 +258,9 @@ mypy src/
 
 ## ドキュメント
 
-- [requirements.md](requirements.md) - 要件定義書
-- [technical_specification.md](technical_specification.md) - 技術仕様書
-- [implementation_plan.md](implementation_plan.md) - 実装計画書
+- [requirements.md](docs/requirements.md) - 要件定義書
+- [technical_specification.md](docs/technical_specification.md) - 技術仕様書
+- [implementation_plan.md](docs/implementation_plan.md) - 実装計画書
 
 ## トラブルシューティング
 

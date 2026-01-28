@@ -34,9 +34,9 @@
 ```
 kindleToText_v2/
 ├── project/
+│   ├── main.py                       # エントリーポイント
 │   ├── src/                          # ソースコード
 │   │   ├── __init__.py
-│   │   ├── main.py                   # エントリーポイント
 │   │   ├── config/                   # 設定関連
 │   │   │   ├── __init__.py
 │   │   │   ├── config_loader.py     # 設定読み込み
@@ -399,7 +399,7 @@ heading_detection:
 
 ### 5.1 コマンドライン引数
 ```bash
-python src/main.py [OPTIONS]
+python main.py [OPTIONS]
 
 Options:
   --title TEXT              書籍タイトル（必須）
@@ -414,16 +414,16 @@ Options:
 ### 5.2 実行例
 ```bash
 # 新規処理開始
-python src/main.py --title "マイブック"
+python main.py --title "マイブック"
 
 # 特定ページ範囲を指定
-python src/main.py --title "マイブック" --start-page 10 --end-page 100
+python main.py --title "マイブック" --start-page 10 --end-page 100
 
 # 前回の続きから再開
-python src/main.py --title "マイブック" --resume
+python main.py --title "マイブック" --resume
 
 # カスタム設定ファイル使用
-python src/main.py --title "マイブック" --config custom_config.yaml
+python main.py --title "マイブック" --config custom_config.yaml
 ```
 
 ### 5.3 プログレス表示
@@ -739,4 +739,4 @@ https://kotaro-kinoshita.github.io/yomitoku/installation/
 
 ### 14.2 関連ドキュメント
 - [requirements.md](requirements.md) - 要件定義書
-- [README.md](README.md) - プロジェクト概要（作成予定）
+- [README.md](../README.md) - プロジェクト概要
